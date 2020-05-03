@@ -13,6 +13,15 @@ Login
 {% block content %}
 <div class="container">
 
+  {% with messeges = get_flashed_messages(with_categories=true)  %}
+    {% if messeges %}
+      {% for category, message in messeges %}
+        <div style="max-width: 32em; margin: auto"  class="text-center alert alert-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
   <form class="form-signin" method="POST" action="/login">
     <h2 class="form-signin-heading">Please sign in</h2>
       {{ form.hidden_tag() }}

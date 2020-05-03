@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, flash, get_flashed_messages
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
@@ -24,6 +24,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(15), unique=True, nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    isApproved = db.Column(db.Boolean, default=False, nullable=True)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -42,13 +43,16 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user:
-            if check_password_hash(user.password, form.password.data):
+            if check_password_hash(user.password, form.password.data) and user.isApproved:
                 login_user(user, remember=form.remember.data)
+                flash("Successfully logged in" , "success")
                 return redirect(url_for('dashboard'))
-
-        return "Invalid user or password"
-
-
+            elif user.isApproved == False:
+                flash("You haven't been approved yet", 'info')
+            else:
+                flash("Invalid username or password", "danger")
+        else:
+            flash("User does not exist" , "warning")
     return render_template('login.html', form=form)
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -78,3 +82,5 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
